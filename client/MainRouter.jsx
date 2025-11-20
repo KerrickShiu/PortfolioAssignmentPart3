@@ -8,7 +8,8 @@ import Project from './src/project'
 import Services from './src/services'
 import Layout from './components/layout'
 import Counter from './src/counter'
-import SignUp from './src/signup';
+import SignUp from './src/signup'
+import SignIn from './src/signin'
 const MainRouter = () => {
 return (<div>
 <Layout/>
@@ -21,6 +22,7 @@ return (<div>
 <Route exact path="/contact" element={<Contact />} />
 <Route exact path="/counter" element={<Counter />} />
 <Route exact path="/signup" element={<SignUp />} />
+<Route exact path="/signin" element={<SignIn />} />
 </Routes>
 </div>
 )
