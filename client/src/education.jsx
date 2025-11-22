@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { TextField, Button, Typography, Container } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { TextField, Button, Typography, Container, List, ListItem } from '@mui/material';
 
 export default function Education() {
   const [formData, setFormData] = useState({
-    fullName: '',
-    degree: '',
-    institution: '',
-    year: '',
-    field: ''
+    title: '',
+    firstname: '',
+    lastname: '',
+    email: '',
+    completion: '',
+    description: ''
   });
-  const [message, setMessage] = useState('');
+  const [entries, setEntries] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/qualifications')
+      .then(res => res.json())
+      .then(data => setEntries(data));
+  }, []);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -17,42 +24,44 @@ export default function Education() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/education', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage('Qualification submitted successfully!');
-        setFormData({ fullName: '', degree: '', institution: '', year: '', field: '' });
-      } else {
-        setMessage(data.error || 'Submission failed.');
-      }
-    } catch {
-      setMessage('Server error.');
+    const res = await fetch('/api/qualifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setEntries([...entries, data]);
+      setFormData({ title: '', firstname: '', lastname: '', email: '', completion: '', description: '' });
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Typography variant="h4" gutterBottom>My Education</Typography>
-      <ul>
-        <li>Sir John A. Macdonald CI — OSSD (2022)</li>
-        <li>Centennial College — Health Informatics Technology Advanced Diploma (2025–Present)</li>
-      </ul>
-
-      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Submit Your Qualifications</Typography>
+    <Container>
+      <Typography variant="h4" gutterBottom>Education</Typography>
       <form onSubmit={handleSubmit}>
-        <TextField fullWidth margin="normal" label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} />
-        <TextField fullWidth margin="normal" label="Degree or Certification" name="degree" value={formData.degree} onChange={handleChange} />
-        <TextField fullWidth margin="normal" label="Institution" name="institution" value={formData.institution} onChange={handleChange} />
-        <TextField fullWidth margin="normal" label="Year of Completion" name="year" value={formData.year} onChange={handleChange} />
-        <TextField fullWidth margin="normal" label="Field of Study" name="field" value={formData.field} onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Title" name="title" value={formData.title} onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="First Name" name="firstname" value={formData.firstname} onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Last Name" name="lastname" value={formData.lastname} onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Email" name="email" value={formData.email} onChange={handleChange} />
+        <TextField fullWidth margin="normal" type="date" label="Completion Date" name="completion" value={formData.completion} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+        <TextField fullWidth margin="normal" label="Description" name="description" value={formData.description} onChange={handleChange} />
         <Button variant="contained" color="primary" type="submit">Submit</Button>
       </form>
-      {message && <Typography sx={{ mt: 2 }}>{message}</Typography>}
+
+      <List>
+        {entries.map((entry) => (
+          <ListItem key={entry._id}>
+            <div>
+              <Typography variant="subtitle1">{entry.title}</Typography>
+              <Typography>{entry.firstname} {entry.lastname}</Typography>
+              <Typography>{entry.email}</Typography>
+              <Typography>{new Date(entry.completion).toLocaleDateString()}</Typography>
+              <Typography>{entry.description}</Typography>
+            </div>
+          </ListItem>
+        ))}
+      </List>
     </Container>
   );
 }
