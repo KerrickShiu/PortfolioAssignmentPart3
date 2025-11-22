@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./example.css";
 
 export default function Contact() {
@@ -11,10 +11,18 @@ export default function Contact() {
 
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [entries, setEntries] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/contacts")
+      .then(res => res.json())
+      .then(data => setEntries(data))
+      .catch(() => setEntries([]));
+  }, []);
 
   const onSubmit = async (data) => {
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -23,6 +31,7 @@ export default function Contact() {
       if (res.ok) {
         setSuccess(true);
         setServerError("");
+        setEntries([...entries, result]);
       } else {
         setServerError(result.error || "Submission failed.");
       }
@@ -77,6 +86,15 @@ export default function Contact() {
           </p>
         )}
       </form>
+
+      <h3>Submitted Contacts</h3>
+      <ul>
+        {entries.map((entry) => (
+          <li key={entry._id}>
+            <b>{entry.name}</b> — {entry.email}: {entry.message}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
